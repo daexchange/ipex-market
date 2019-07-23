@@ -33,6 +33,7 @@ import ai.turbochain.ipex.entity.KLine;
 import ai.turbochain.ipex.entity.TradePlateItem;
 import ai.turbochain.ipex.processor.CoinProcessor;
 import ai.turbochain.ipex.processor.CoinProcessorFactory;
+import ai.turbochain.ipex.service.CoinService;
 import ai.turbochain.ipex.service.ExchangeCoinService;
 import ai.turbochain.ipex.service.ExchangeCoinSettlementService;
 import ai.turbochain.ipex.service.ExchangeTradeService;
@@ -46,7 +47,7 @@ public class MarketController {
     @Autowired
     private MarketService marketService;
     @Autowired
-    private ExchangeCoinService coinService;
+    private ExchangeCoinService exchangeCoinService;
     @Autowired
     private CoinProcessorFactory coinProcessorFactory;
     @Autowired
@@ -56,15 +57,17 @@ public class MarketController {
     @Autowired
     private RedisTemplate redisTemplate;
     @Autowired
+    private CoinService coinService;
+    @Autowired
     private ExchangeCoinSettlementService exchangeCoinSettlementService;
-    
+   
     /**
      * 获取支持的交易币种
      * @return
      */
     @RequestMapping("symbol")
     public List<ExchangeCoin> findAllSymbol(){
-        List<ExchangeCoin> coins = coinService.findAllEnabled();
+        List<ExchangeCoin> coins = exchangeCoinService.findAllEnabled();
         return coins;
     }
 
@@ -72,7 +75,7 @@ public class MarketController {
     public Map<String,List<CoinThumb>> overview(){
         log.info("/market/overview");
         Map<String,List<CoinThumb>> result = new HashMap<>();
-        List<ExchangeCoin> recommendCoin = coinService.findAllByFlag(1);
+        List<ExchangeCoin> recommendCoin = exchangeCoinService.findAllByFlag(1);
         List<CoinThumb> recommendThumbs = new ArrayList<>();
         for(ExchangeCoin coin:recommendCoin){
             CoinProcessor processor = coinProcessorFactory.getProcessor(coin.getSymbol());
@@ -97,7 +100,7 @@ public class MarketController {
      */
     @RequestMapping("symbol-info")
     public ExchangeCoin findSymbol(String symbol){
-        ExchangeCoin coin = coinService.findBySymbol(symbol);
+        ExchangeCoin coin = exchangeCoinService.findBySymbol(symbol);
         return coin;
     }
 
@@ -111,14 +114,17 @@ public class MarketController {
     	 
     	if (StringUtils.isNotBlank(coinSymbol)||
     			StringUtils.isNotBlank(basecion)) {
-    		coins = coinService.findAllEnabled(coinSymbol,basecion);
+    		coins = exchangeCoinService.findAllEnabled(coinSymbol,basecion);
     	} else {
-    		coins = coinService.findAllEnabled();
+    		coins = exchangeCoinService.findAllEnabled();
     	}
        
         List<CoinThumb> thumbs = new ArrayList<>();
         for(ExchangeCoin coin:coins){
             CoinProcessor processor = coinProcessorFactory.getProcessor(coin.getSymbol());
+            if (processor==null) {
+            	continue;
+            }
             CoinThumb thumb = processor.getThumb();
             thumbs.add(thumb);
         }
@@ -127,7 +133,7 @@ public class MarketController {
 
     @RequestMapping("symbol-thumb-trend")
     public JSONArray findSymbolThumbWithTrend(){
-        List<ExchangeCoin> coins = coinService.findAllEnabled();
+        List<ExchangeCoin> coins = exchangeCoinService.findAllEnabled();
         //List<CoinThumb> thumbs = new ArrayList<>();
         Calendar calendar = Calendar.getInstance();
         //将秒、微秒字段置为0
@@ -277,11 +283,9 @@ public class MarketController {
         
         if (symbols==null) {
             log.info(">>>>>>缓存中无数据>>>>>");
-           
+            //symbols = coinService.findAllUnit(CommonStatus.NORMAL);
             symbols = exchangeCoinSettlementService.findSymbols();
-            
           //  coins.forEach(exchangeCoin-> set.add(exchangeCoin.getBaseSymbol()));
-     
             valueOperations.set(key,symbols,2,TimeUnit.HOURS);
         } else {
             log.info(">>>>缓存中有数据>>>");

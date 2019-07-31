@@ -77,7 +77,10 @@ public class CoinExchangeRate {
         }else if ("HKD".equalsIgnoreCase(symbol)) {
             BigDecimal bigDecimal = BigDecimal.ONE.divide(usdHkdRate, 4,BigDecimal.ROUND_DOWN).setScale(4, BigDecimal.ROUND_DOWN);
             return bigDecimal;
-        }else if ("PWR".equalsIgnoreCase(symbol)) {
+        } else if ("PWR".equalsIgnoreCase(symbol)) {
+            BigDecimal bigDecimal = BigDecimal.ONE.divide(usdPWRRate, 4,BigDecimal.ROUND_DOWN).setScale(4, BigDecimal.ROUND_DOWN);
+            return bigDecimal;
+        } else if ("TLM".equalsIgnoreCase(symbol)) {
             BigDecimal bigDecimal = BigDecimal.ONE.divide(usdPWRRate, 4,BigDecimal.ROUND_DOWN).setScale(4, BigDecimal.ROUND_DOWN);
             return bigDecimal;
         }

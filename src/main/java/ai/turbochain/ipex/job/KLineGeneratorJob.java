@@ -92,7 +92,7 @@ public class KLineGeneratorJob {
             int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
            
             if (week == 1) { // 每周一统计上周的
-                processor.generateKLine(1, Calendar.DAY_OF_WEEK, time);
+                processor.generateKLine(1, Calendar.WEEK_OF_YEAR, time);
             }
             if (dayOfMonth == 1) {// 每月一统计上月的
                 processor.generateKLine(1, Calendar.MONTH, time);
@@ -101,5 +101,4 @@ public class KLineGeneratorJob {
             processor.generateKLine(1, Calendar.DAY_OF_YEAR,time);
         });
     }
- 
 }

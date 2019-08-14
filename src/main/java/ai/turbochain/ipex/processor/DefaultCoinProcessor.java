@@ -310,7 +310,7 @@ public class DefaultCoinProcessor implements CoinProcessor {
             rangeUnit = "min";
         } else if (field == Calendar.HOUR_OF_DAY) {
             rangeUnit = "hour";
-        } else if (field == Calendar.DAY_OF_WEEK) {
+        } else if (field == Calendar.WEEK_OF_YEAR) {
             rangeUnit = "week";
         } else if (field == Calendar.DAY_OF_YEAR) {
             rangeUnit = "day";

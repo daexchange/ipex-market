@@ -1,13 +1,13 @@
 package ai.turbochain.ipex.job;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.Calendar;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import ai.turbochain.ipex.processor.CoinProcessorFactory;
-
-import java.util.Calendar;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 生成各时间段的K线信息
@@ -90,15 +90,16 @@ public class KLineGeneratorJob {
             long time = calendar.getTimeInMillis();
             int week = calendar.get(Calendar.DAY_OF_WEEK);
             int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
-            if(week == 1){
+           
+            if (week == 1) { // 每周一统计上周的
                 processor.generateKLine(1, Calendar.DAY_OF_WEEK, time);
             }
-            if(dayOfMonth == 1){
-                processor.generateKLine(1, Calendar.DAY_OF_MONTH, time);
+            if (dayOfMonth == 1) {// 每月一统计上月的
+                processor.generateKLine(1, Calendar.MONTH, time);
             }
+            
             processor.generateKLine(1, Calendar.DAY_OF_YEAR,time);
         });
     }
-
-
+ 
 }

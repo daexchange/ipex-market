@@ -1,18 +1,6 @@
 package ai.turbochain.ipex.processor;
 
 
-import com.alibaba.fastjson.JSON;
-
-import ai.turbochain.ipex.component.CoinExchangeRate;
-import ai.turbochain.ipex.entity.CoinThumb;
-import ai.turbochain.ipex.entity.ExchangeTrade;
-import ai.turbochain.ipex.entity.KLine;
-import ai.turbochain.ipex.handler.MarketHandler;
-import ai.turbochain.ipex.service.MarketService;
-import lombok.ToString;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DateFormat;
@@ -21,6 +9,20 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.alibaba.fastjson.JSON;
+
+import ai.turbochain.ipex.component.CoinExchangeRate;
+import ai.turbochain.ipex.entity.CoinThumb;
+import ai.turbochain.ipex.entity.ExchangeTrade;
+import ai.turbochain.ipex.entity.KLine;
+import ai.turbochain.ipex.handler.MarketHandler;
+import ai.turbochain.ipex.service.MarketService;
+import ai.turbochain.ipex.util.DateUtil;
+import lombok.ToString;
 
 /**
  * 默认交易处理器，产生1mK线信息
@@ -286,15 +288,19 @@ public class DefaultCoinProcessor implements CoinProcessor {
     @Override
     public void generateKLine(int range, int field, long time) {
         Calendar calendar = Calendar.getInstance();
+        
         calendar.setTimeInMillis(time);
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        
         long endTick = calendar.getTimeInMillis();
-        String endTime = df.format(calendar.getTime());
+        String endTime = DateUtil.dateToString(calendar.getTime());
+        
         //往前推range个时间单位
         calendar.add(field, -range);
-        String fromTime = df.format(calendar.getTime());
+        
+        String fromTime = DateUtil.dateToString(calendar.getTime());
         long startTick = calendar.getTimeInMillis();
         System.out.println("time range from " + fromTime + " to " + endTime);
+       
         List<ExchangeTrade> exchangeTrades = service.findTradeByTimeRange(this.symbol, startTick, endTick);
 
         KLine kLine = new KLine();

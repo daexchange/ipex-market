@@ -160,6 +160,7 @@ public class MarketController {
         return array;
     }
 
+    
     /**
      * 获取币种历史K线
      * @param symbol
@@ -169,45 +170,38 @@ public class MarketController {
      * @return
      */
     @RequestMapping("history")
-    public JSONArray findKHistory(String symbol,long from,long to,String resolution){
-        String period = "";
-        if(resolution.endsWith("H") || resolution.endsWith("h")){
-            period = resolution.substring(0,resolution.length()-1) + "hour";
-        }
-        else if(resolution.endsWith("D") || resolution.endsWith("d")){
-            period = resolution.substring(0,resolution.length()-1) + "day";
-        }
-        else if(resolution.endsWith("W") || resolution.endsWith("w")){
-            period = resolution.substring(0,resolution.length()-1) + "week";
-        }
-        else if(resolution.endsWith("M") || resolution.endsWith("m")){
-            period = resolution.substring(0,resolution.length()-1) + "month";
-        }
-        else{
+    public List<KLine> findKHistory(String symbol,long from,long to,String resolution){
+    	
+    	String period = null;
+        
+        if ("1H".equals(resolution) || resolution.endsWith("h")) {//按小时
+            period = "1hour";
+        } else if("1D".equals(resolution) || resolution.endsWith("d")){//按天
+            period = "1day";
+        } else if("1W".equals(resolution) || resolution.endsWith("w")){//按周
+            period = "1week";
+        } else if("1M".equals(resolution) || resolution.endsWith("m")){//按月
+            period = "1month";
+        } else {
             Integer val = Integer.parseInt(resolution);
-            if(val < 60) {
+            if(val == 1) { // 1分钟
                 period = resolution + "min";
-            }
-            else {
-                period = (val/60) + "hour";
-            }
-        }
-        List<KLine> list = marketService.findAllKLine(symbol,from,to,period);
+               
+                List<KLine> list = marketService.findAllKLine(symbol,from,to,period);
 
-        JSONArray array = new JSONArray();
-        for(KLine item:list){
-            JSONArray group = new JSONArray();
-            group.add(0,item.getTime());
-            group.add(1,item.getOpenPrice());
-            group.add(2,item.getHighestPrice());
-            group.add(3,item.getLowestPrice());
-            group.add(4,item.getClosePrice());
-            group.add(5,item.getVolume());
-            array.add(group);
-        }
-        return array;
+                return list;
+            } else if(val == 60)  {// 按时
+                period =  "1hour";
+            } else {/// 按分钟
+                period =  val+"min";
+            }
+        } 
+        List<KLine> list = marketService.findAllKLineByType(symbol,period);
+        
+    	return list;
     }
 
+    
     /**
      * 查询最近成交记录
      * @param symbol 交易对符号

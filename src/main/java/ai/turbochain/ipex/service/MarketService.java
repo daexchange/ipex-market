@@ -34,6 +34,13 @@ public class MarketService {
         List<KLine> kLines = mongoTemplate.find(query,KLine.class,"exchange_kline_"+symbol+"_"+ period);
         return kLines;
     }
+    
+    public List<KLine> findAllKLineByType(String symbol,String period){
+        Sort sort = new Sort(new Sort.Order(Sort.Direction.ASC,"time"));
+        Query query = new Query().with(sort);
+        List<KLine> kLines = mongoTemplate.find(query,KLine.class,"exchange_kline_"+symbol+"_"+ period);
+        return kLines;
+    }
 
     public ExchangeTrade findFirstTrade(String symbol,long fromTime,long toTime){
         Criteria criteria = Criteria.where("time").gte(fromTime).andOperator(Criteria.where("time").lte(toTime));

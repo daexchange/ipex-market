@@ -1,13 +1,9 @@
 package ai.turbochain.ipex.job;
 
-import static ai.turbochain.ipex.constant.SysConstant.RESET_PASSWORD_CODE_PREFIX;
-import static org.springframework.util.Assert.notNull;
-
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -100,13 +96,14 @@ public class DigitalCurrencyMarketJob {
 						String last = jsonArray.getJSONObject(0).optString("last");
 						Double coinMarketPrice = DigitalCurrencyMarketJob.getRate().multiply(new BigDecimal(last))
 								.setScale(6, BigDecimal.ROUND_HALF_UP).doubleValue();
-						valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey(),
-								coinMarketPrice);
+						valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey(),coinMarketPrice);		
+						System.out.println(coinKey+"====="+valueOperations.get(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey()));
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 				} else {
 					valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey(), 2.000000);
+					System.out.println(coinKey+"====="+valueOperations.get(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey()));
 				}
 			}
 		} catch (Exception e) {

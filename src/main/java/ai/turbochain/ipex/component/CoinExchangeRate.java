@@ -40,6 +40,9 @@ public class CoinExchangeRate {
     private BigDecimal usdJpyRate = new BigDecimal("110.02");
     @Getter
     @Setter
+    private BigDecimal btcJpyRate = new BigDecimal("10000.01");
+    @Getter
+    @Setter
     private BigDecimal usdHkdRate = new BigDecimal("7.8491");
     @Getter
     @Setter
@@ -82,6 +85,12 @@ public class CoinExchangeRate {
             return bigDecimal;
         } else if ("TLM".equalsIgnoreCase(symbol)) {
             BigDecimal bigDecimal = BigDecimal.ONE.divide(usdPWRRate, 4,BigDecimal.ROUND_DOWN).setScale(4, BigDecimal.ROUND_DOWN);
+            return bigDecimal;
+        }else if ("BTC".equalsIgnoreCase(symbol)) {//不知道利率写多少暂时写
+            BigDecimal bigDecimal = BigDecimal.ONE.divide(btcJpyRate, 4,BigDecimal.ROUND_DOWN).setScale(4, BigDecimal.ROUND_DOWN);
+            return bigDecimal;
+        }else if ("ETH".equalsIgnoreCase(symbol)) {//不知道利率写多少暂时写
+            BigDecimal bigDecimal = BigDecimal.ONE.divide(usdCnyRate, 4,BigDecimal.ROUND_DOWN).setScale(4, BigDecimal.ROUND_DOWN);
             return bigDecimal;
         }
         

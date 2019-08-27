@@ -186,15 +186,14 @@ public class MarketController {
             Integer val = Integer.parseInt(resolution);
             if(val == 1) { // 1分钟
                 period = resolution + "min";
-               
-                List<KLine> list = marketService.findAllKLine(symbol,from,to,period);
-
-                return list;
             } else if(val == 60)  {// 按时
                 period =  "1hour";
-            } else {/// 按分钟
+            } else {// 按分钟
                 period =  val+"min";
             }
+            List<KLine> list = marketService.findAllKLine(symbol,from,to,period);
+
+            return list;
         } 
         List<KLine> list = marketService.findAllKLineByType(symbol,period);
         

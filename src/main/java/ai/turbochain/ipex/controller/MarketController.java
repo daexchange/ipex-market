@@ -305,4 +305,38 @@ public class MarketController {
         return thumbs;
     }
     
+    @GetMapping("/cny-rate/list")
+    public MessageResult CoinsCnyRate() {
+    	Map<String,Object> coinsCnyRate = null;
+
+    	ValueOperations valueOperations = redisTemplate.opsForValue();
+
+    	coinsCnyRate = (Map<String, Object>) valueOperations.get(SysConstant.COINS_CNY_RATE);
+    	
+    	if (coinsCnyRate==null) {
+    		Map<String,Object> map = new HashMap<String,Object>();
+    		Set<String> baseCoins = findAllBaseSymbol();
+
+        	baseCoins.forEach(symbol-> {
+            	String key = SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + symbol;
+
+            	Object bondvalue = valueOperations.get(key);
+                
+                if (bondvalue==null) {
+                    log.info(symbol+">>>>>>缓存中无利率转换数据>>>>>");
+                } else {
+                    log.info(symbol+"缓存中利率转换数据为："+bondvalue);
+                }
+                map.put(symbol, bondvalue);
+        	});
+        	valueOperations.set(SysConstant.COINS_CNY_RATE, map);
+        	coinsCnyRate = map;
+    	}
+    	MessageResult re = new MessageResult();
+        re.setCode(0);
+        re.setMessage("success");
+        re.setData(coinsCnyRate);
+        return re;
+    }
+    
 }

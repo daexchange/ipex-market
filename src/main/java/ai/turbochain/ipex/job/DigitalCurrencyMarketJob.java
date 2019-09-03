@@ -73,6 +73,7 @@ public class DigitalCurrencyMarketJob {
 	static {
 		coinKeys.put("ETH", "7843");
 		coinKeys.put("BTC", "7496");
+		coinKeys.put("USDT", "");
 		coinKeys.put("PWR", "");// 暂时定义PWR价格为2.000000人民币
 	}
 
@@ -101,9 +102,15 @@ public class DigitalCurrencyMarketJob {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-				} else {
+				} else if(coinKey.getKey().equals("PWR")==true){
 					valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey(), 2.000000);
 					System.out.println(coinKey+"====="+valueOperations.get(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey()));
+				} else if(coinKey.getKey().equals("USDT")==true) {
+					Double coinMarketPrice = DigitalCurrencyMarketJob.getRate()
+							.setScale(6, BigDecimal.ROUND_HALF_UP).doubleValue();
+					valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey(),coinMarketPrice);		
+					System.out.println(coinKey+"====="+valueOperations.get(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey()));
+					
 				}
 			}
 		} catch (Exception e) {

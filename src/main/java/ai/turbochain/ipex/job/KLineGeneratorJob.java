@@ -7,6 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import ai.turbochain.ipex.processor.CoinProcessorFactory;
+import ai.turbochain.ipex.util.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -18,7 +19,10 @@ import lombok.extern.slf4j.Slf4j;
 public class KLineGeneratorJob {
     @Autowired
     private CoinProcessorFactory processorFactory;
-
+    public static final String Period_1month = "1month";
+    public static final String Period_1week = "1week";
+    public static final String Period_1day = "1day";
+    
     /**
      * 每分钟定时器，处理分钟K线
      */
@@ -74,31 +78,70 @@ public class KLineGeneratorJob {
         });
     }
 
+    
+    //@Scheduled(cron = "0 40 16 * * ? ")
+   
     /**
-     * 每日0点处理器，处理日K线
+         * 每日0点5分处理器，处理日K线
      */
-    @Scheduled(cron = "0 0 0 * * *")
-    public void handleDayKLine(){
-        processorFactory.getProcessorMap().forEach((symbol,processor)->{
-            Calendar calendar = Calendar.getInstance();
-            log.info("日K线:{}",calendar.getTime());
-            //将秒、微秒字段置为0
-            calendar.set(Calendar.HOUR_OF_DAY,0);
-            calendar.set(Calendar.MINUTE,0);
-            calendar.set(Calendar.SECOND,0);
-            calendar.set(Calendar.MILLISECOND,0);
-            long time = calendar.getTimeInMillis();
-            int week = calendar.get(Calendar.DAY_OF_WEEK);
-            int dayOfMonth = calendar.get(Calendar.DAY_OF_MONTH);
-           
-            if (week == 1) { // 每周一统计上周的
-                processor.generateKLine(1, Calendar.WEEK_OF_YEAR, time);
-            }
-            if (dayOfMonth == 1) {// 每月一统计上月的
-                processor.generateKLine(1, Calendar.MONTH, time);
-            }
-            
-            processor.generateKLine(1, Calendar.DAY_OF_YEAR,time);
+    @Scheduled(cron = "0 5 0 * * *")
+    public void handleDayKLine2() {
+    	System.out.println("=====按日统计报表程序启动======");
+    	
+    	final long startTick = DateUtil.getYestDayBeginTime();
+    	final long endTick =  DateUtil.getTodayBeginTime();
+		
+		System.out.println(startTick + "========" + endTick);
+    	
+    	// TODO 需要修改
+    	processorFactory.getProcessorMap().forEach((symbol,processor)->{
+             processor.generateKLine2(startTick, endTick,Period_1day);
         });
+    	
+    	System.out.println("=====按日统计报表程序结束======");
+    }
+    
+    
+    /**
+         * 每周一统计上周的交易数据
+     * 
+     */
+    @Scheduled(cron = "0 10 0 ? * MON") 
+    public void handleWeekKLine() {//每周一上午0:10触发 
+    	System.out.println("=====按周统计报表程序启动======");
+    	
+    	final long startTick = DateUtil.getBeforeFirstWeekDate();
+    	final long endTick =  DateUtil.getBeginDayOfWeek();
+    	
+		System.out.println(startTick + "========" + endTick);
+    	
+    	// TODO 需要修改
+    	processorFactory.getProcessorMap().forEach((symbol,processor)->{
+             processor.generateKLine2(startTick, endTick,Period_1week);
+        });
+    	
+    	System.out.println("=====按周统计报表程序结束======");
+    }
+    
+    
+    /**
+       * 每月一号统计上月的交易数据
+     *  
+     */
+    @Scheduled(cron = "0 15 0 1 * ?")  
+    public void handleMonthKLine() {//每月1日上午0:15触发
+    	System.out.println("=====按月统计报表程序启动======");
+    	
+    	final long startTick = DateUtil.getBeforeFirstMonthDate();
+    	final long endTick =  DateUtil.getFirstDate();
+		 
+		System.out.println(startTick + "========" + endTick);
+    	
+    	// TODO 需要修改
+    	processorFactory.getProcessorMap().forEach((symbol,processor)->{
+             processor.generateKLine2(startTick, endTick,Period_1month);
+        });
+    	 
+    	System.out.println("=====按月统计报表程序结束======");
     }
 }

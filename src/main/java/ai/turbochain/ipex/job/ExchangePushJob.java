@@ -119,6 +119,9 @@ public class ExchangePushJob {
             List<CoinThumb> thumbs = entry.getValue();
             if(thumbs.size() > 0){
                 synchronized (thumbs) {
+                	/**
+                     * 广播，服务器主动推给连接的客户端
+                     */
                     messagingTemplate.convertAndSend("/topic/market/thumb",thumbs.get(thumbs.size() - 1));
                     thumbs.clear();
                 }

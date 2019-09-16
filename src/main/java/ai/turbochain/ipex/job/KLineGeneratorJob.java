@@ -79,7 +79,6 @@ public class KLineGeneratorJob {
     }
 
     
-    //@Scheduled(cron = "0 40 16 * * ? ")
    
     /**
          * 每日0点5分处理器，处理日K线

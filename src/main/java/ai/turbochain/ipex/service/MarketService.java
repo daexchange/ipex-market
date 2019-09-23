@@ -1,19 +1,22 @@
 package ai.turbochain.ipex.service;
 
 
+import java.math.BigDecimal;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
+
+import com.mongodb.WriteResult;
 
 import ai.turbochain.ipex.entity.ExchangeTrade;
 import ai.turbochain.ipex.entity.KLine;
-
-import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.List;
+import ai.turbochain.ipex.entity.Page;
 
 @Service
 public class MarketService {
@@ -75,6 +78,20 @@ public class MarketService {
         mongoTemplate.insert(kLine,"exchange_kline_"+symbol+"_"+kLine.getPeriod());
     }
 
+    public int updateKLine(String symbol,KLine kLine){
+    	 Query query = new Query();  
+         query.addCriteria(Criteria.where("time").is(kLine.getTime()));  
+        
+         Update update = new Update();  
+         update.addToSet("kLines", kLine);
+         
+         String collectionName = "exchange_kline_"+symbol+"_"+kLine.getPeriod();
+         
+         WriteResult writeResult = mongoTemplate.upsert(query, update, collectionName);
+         
+         return writeResult.getN();
+    }
+    
     /**
      * 查找某时间段内的交易量
      * @param symbol
@@ -95,4 +112,32 @@ public class MarketService {
         }
         return totalVolume;
     }
+    
+    
+    public Page findTradeByPage(String symbol, long timeStart, long timeEnd,
+    		Integer currentPage, Integer pageSize) {
+        Criteria criteria = Criteria.where("time").gte(timeStart).andOperator(Criteria.where("time").lt(timeEnd));
+        Sort sort = new Sort(new Sort.Order(Sort.Direction.ASC,"time"));
+        Query query = new Query(criteria).with(sort);
+        //设置起始数
+        query.skip((currentPage - 1) * pageSize);
+        //设置查询条数
+        query.limit(pageSize);
+
+        String collectionName = "exchange_trade_"+symbol;
+        List<ExchangeTrade> list = mongoTemplate.find(query,ExchangeTrade.class,collectionName);
+        
+        //查询总记录数
+        long count = (long) mongoTemplate.count(query, collectionName);
+        
+        Page page = new Page();
+        
+        //添加每页的集合、数据总条数、总页数
+        page.setData(list);
+        page.setPageSize(count);
+        page.setTotal(count % pageSize == 0 ? 1 : count / pageSize + 1);
+       
+        return page;
+    }
+    
 }

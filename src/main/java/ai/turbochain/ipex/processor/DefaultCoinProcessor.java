@@ -222,6 +222,24 @@ public class DefaultCoinProcessor implements CoinProcessor {
         kLine.setTurnover(kLine.getTurnover().add(turnover));
     }
 
+    public void processTrade(KLine kLine, KLine newKLine) {
+        if (kLine.getClosePrice().compareTo(BigDecimal.ZERO) == 0) {
+            //第一次设置K线值
+            kLine.setOpenPrice(newKLine.getOpenPrice());
+            kLine.setHighestPrice(newKLine.getHighestPrice());
+            kLine.setLowestPrice(newKLine.getLowestPrice());
+            kLine.setClosePrice(newKLine.getClosePrice());
+        } else {
+            kLine.setHighestPrice(newKLine.getHighestPrice().max(kLine.getHighestPrice()));
+            kLine.setLowestPrice(newKLine.getLowestPrice().min(kLine.getLowestPrice()));
+            kLine.setClosePrice(newKLine.getClosePrice());
+        }
+        kLine.setCount(kLine.getCount() + 1);
+        kLine.setVolume(kLine.getVolume().add(newKLine.getVolume()));
+        BigDecimal turnover = newKLine.getOpenPrice().multiply(newKLine.getVolume());
+        kLine.setTurnover(kLine.getTurnover().add(turnover));
+    }
+    
     public void handleTradeStorage(ExchangeTrade exchangeTrade) {
         for (MarketHandler storage : handlers) {
             storage.handleTrade(symbol, exchangeTrade, coinThumb);
@@ -304,7 +322,8 @@ public class DefaultCoinProcessor implements CoinProcessor {
         List<ExchangeTrade> exchangeTrades = service.findTradeByTimeRange(this.symbol, startTick, endTick);
 
         KLine kLine = new KLine();
-        kLine.setTime(endTick);
+        kLine.setTime(startTick);
+       // kLine.setTime(endTick);
         String rangeUnit = "";
         if (field == Calendar.MINUTE) {
             rangeUnit = "min";
@@ -330,4 +349,24 @@ public class DefaultCoinProcessor implements CoinProcessor {
     public KLine getKLine() {
         return currentKLine;
     }
+    
+    
+    public void generateKLine2(long startTick, long endTick,String period) {
+    	
+        List<ExchangeTrade> exchangeTrades = service.findTradeByTimeRange(this.symbol, startTick, endTick);
+
+        KLine kLine = new KLine();
+        
+        kLine.setTime(startTick);
+        kLine.setPeriod(period);
+
+        // 处理K线信息
+        for (ExchangeTrade exchangeTrade : exchangeTrades) {
+            processTrade(kLine, exchangeTrade);
+        }
+        
+        // 查询
+        service.saveKLine(symbol,kLine);
+    }
+    
 }

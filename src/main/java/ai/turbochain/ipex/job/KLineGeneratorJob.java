@@ -1,12 +1,19 @@
 package ai.turbochain.ipex.job;
 
 import java.util.Calendar;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import ai.turbochain.ipex.entity.ExchangeTrade;
+import ai.turbochain.ipex.entity.KLine;
 import ai.turbochain.ipex.processor.CoinProcessorFactory;
+import ai.turbochain.ipex.service.MarketService;
 import ai.turbochain.ipex.util.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,9 +26,14 @@ import lombok.extern.slf4j.Slf4j;
 public class KLineGeneratorJob {
     @Autowired
     private CoinProcessorFactory processorFactory;
+    public static final String Period_1hour =  "1hour";
     public static final String Period_1month = "1month";
     public static final String Period_1week = "1week";
     public static final String Period_1day = "1day";
+    @Autowired
+    private MarketService marketService;
+    @Autowired
+    private RedisTemplate redisTemplate;
     
     /**
      * 每分钟定时器，处理分钟K线
@@ -77,7 +89,6 @@ public class KLineGeneratorJob {
             processor.generateKLine(1, Calendar.HOUR_OF_DAY, time);
         });
     }
-
     
    
     /**
@@ -132,7 +143,7 @@ public class KLineGeneratorJob {
     	System.out.println("=====按月统计报表程序启动======");
     	
     	final long startTick = DateUtil.getBeforeFirstMonthDate();
-    	final long endTick =  DateUtil.getFirstDate();
+    	final long endTick =  DateUtil.getFirstDateOfMonth();
 		 
 		System.out.println(startTick + "========" + endTick);
     	
@@ -142,5 +153,88 @@ public class KLineGeneratorJob {
         });
     	 
     	System.out.println("=====按月统计报表程序结束======");
+    }
+    
+    
+    
+    
+    /**
+     * 每15分，30分，45分时触发任务
+       * 统计当天交易数据
+     */
+    @Scheduled(cron = "0 15,30,45 * * * *")
+    public void handleTodayKLine(){
+        processorFactory.getProcessorMap().forEach((symbol,processor)-> {
+            
+            Calendar calendar = Calendar.getInstance();
+            long start = DateUtil.getTodayBeginTime();
+            // 按小时统计累计入当天
+            List<ExchangeTrade> exchangeTrades = marketService.findTradeByTimeRange(symbol, start, calendar.getTimeInMillis());
+
+            KLine kLine = new KLine();
+            kLine.setTime(start);
+            
+            // 处理K线信息
+            for (ExchangeTrade exchangeTrade : exchangeTrades) {
+            	processor.processTrade(kLine, exchangeTrade);
+            }
+            String key = start+symbol+"1day";
+            ValueOperations valueOperations = redisTemplate.opsForValue();
+            valueOperations.set(key, kLine, 1, TimeUnit.DAYS);
+        });
+    }
+    
+    /**
+     * 每日凌晨2点5分统计当前周数据
+     */
+    @Scheduled(cron = "0 5 2 * * *")
+    public void handleThisWeekKLine() {
+    	// 累计当前周数据
+    	 processorFactory.getProcessorMap().forEach((symbol,processor)-> {
+             
+             Calendar calendar = Calendar.getInstance();
+             long start = DateUtil.getBeginDayOfWeek();
+             
+             List<ExchangeTrade> exchangeTrades = marketService.findTradeByTimeRange(symbol, start, calendar.getTimeInMillis());
+
+             KLine kLine = new KLine();
+             kLine.setTime(start);
+             
+             // 处理K线信息
+             for (ExchangeTrade exchangeTrade : exchangeTrades) {
+             	processor.processTrade(kLine, exchangeTrade);
+             }
+             String key = start+symbol+"1week";
+             ValueOperations valueOperations = redisTemplate.opsForValue();
+             valueOperations.set(key, kLine, 7, TimeUnit.DAYS);
+    	 });
+    }
+    
+    
+    /**
+     * 每日凌晨3点15分统计当月数据
+     */
+    @Scheduled(cron = "0 15 3 * * *")
+    public void handleThisMonthKLine() {
+    	// 累计当月数据
+    	 processorFactory.getProcessorMap().forEach((symbol,processor)-> {
+             
+             Calendar calendar = Calendar.getInstance();
+             long from = DateUtil.getFirstDateOfMonth();
+             long to = calendar.getTimeInMillis();
+             
+             KLine kLine = new KLine();
+             kLine.setTime(from);
+             
+             List<KLine> list = marketService.findAllKLine(symbol,from,to,"1day");
+             
+             // 处理K线信息
+             for (KLine newKline : list) {
+             	processor.processTrade(kLine, newKline);
+             }
+             String key = from+symbol+"1month";
+             ValueOperations valueOperations = redisTemplate.opsForValue();
+             valueOperations.set(key, kLine, 31, TimeUnit.DAYS);
+    	 });
     }
 }

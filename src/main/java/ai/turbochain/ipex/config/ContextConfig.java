@@ -19,6 +19,7 @@ public class ContextConfig extends WebMvcConfigurerAdapter {
 	     config.setAllowCredentials(true);
 	     config.addAllowedHeader("*");
 	     config.addAllowedMethod("*");
+	     config.addExposedHeader("x-auth-token");
 	     source.registerCorsConfiguration("/**", config);
 	     FilterRegistrationBean bean = new FilterRegistrationBean(new CorsFilter(source));
 	     bean.setOrder(0);

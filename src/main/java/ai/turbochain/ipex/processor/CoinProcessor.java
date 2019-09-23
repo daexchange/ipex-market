@@ -32,6 +32,8 @@ public interface CoinProcessor {
 
     void generateKLine(int range, int field, long time);
 
+    public void generateKLine2(long startTick, long endTick,String period);
+    	   
     KLine getKLine();
 
     void initializeThumb();
@@ -45,4 +47,9 @@ public interface CoinProcessor {
     void update24HVolume(long time);
 
     void initializeUsdRate();
+    
+    public void processTrade(KLine kLine, ExchangeTrade exchangeTrade);
+
+    public void processTrade(KLine kLine, KLine newKLine);
+
 }

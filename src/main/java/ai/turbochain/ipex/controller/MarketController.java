@@ -38,6 +38,7 @@ import ai.turbochain.ipex.service.ExchangeCoinService;
 import ai.turbochain.ipex.service.ExchangeCoinSettlementService;
 import ai.turbochain.ipex.service.ExchangeTradeService;
 import ai.turbochain.ipex.service.MarketService;
+import ai.turbochain.ipex.util.DateUtil;
 import ai.turbochain.ipex.util.MessageResult;
 import lombok.extern.slf4j.Slf4j;
 
@@ -173,20 +174,23 @@ public class MarketController {
     public List<KLine> findKHistory(String symbol,long from,long to,String resolution){
     	
     	String period = null;
-        
+        long start = 0l;
         if ("1H".equals(resolution) || resolution.endsWith("h")) {//按小时
             period = "1hour";
         } else if("1D".equals(resolution) || resolution.endsWith("d")){//按天
             period = "1day";
+            start = DateUtil.getTodayBeginTime();
         } else if("1W".equals(resolution) || resolution.endsWith("w")){//按周
             period = "1week";
+            start = DateUtil.getBeginDayOfWeek();
         } else if("1M".equals(resolution) || resolution.endsWith("m")){//按月
             period = "1month";
+            start = DateUtil.getFirstDateOfMonth();
         } else {
             Integer val = Integer.parseInt(resolution);
-            if(val == 1) { // 1分钟
+            if (val == 1) { // 1分钟
                 period = resolution + "min";
-            } else if(val == 60)  {// 按时
+            } else if (val == 60) {// 按时
                 period =  "1hour";
             } else {// 按分钟
                 period =  val+"min";
@@ -194,8 +198,18 @@ public class MarketController {
             List<KLine> list = marketService.findAllKLine(symbol,from,to,period);
 
             return list;
-        } 
+        }
+        
         List<KLine> list = marketService.findAllKLineByType(symbol,period);
+        
+        String key = start+symbol+period;
+        // 加上当前的数据
+        ValueOperations valueOperations = redisTemplate.opsForValue();
+        KLine kLine = (KLine) valueOperations.get(key);
+       
+        if (kLine!=null) {
+        	list.add(kLine);
+        }
         
     	return list;
     }

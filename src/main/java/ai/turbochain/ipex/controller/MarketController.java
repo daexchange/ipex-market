@@ -31,6 +31,7 @@ import ai.turbochain.ipex.entity.ExchangeCoin;
 import ai.turbochain.ipex.entity.ExchangeTrade;
 import ai.turbochain.ipex.entity.KLine;
 import ai.turbochain.ipex.entity.TradePlateItem;
+import ai.turbochain.ipex.job.KLineGeneratorJob;
 import ai.turbochain.ipex.processor.CoinProcessor;
 import ai.turbochain.ipex.processor.CoinProcessorFactory;
 import ai.turbochain.ipex.service.CoinService;
@@ -172,19 +173,19 @@ public class MarketController {
      */
     @RequestMapping("history")
     public List<KLine> findKHistory(String symbol,long from,long to,String resolution){
-    	
     	String period = null;
+    	boolean needadd = false;
         long start = 0l;
         if ("1H".equals(resolution) || resolution.endsWith("h")) {//按小时
-            period = "1hour";
+            period = KLineGeneratorJob.Period_1hour;
         } else if("1D".equals(resolution) || resolution.endsWith("d")){//按天
-            period = "1day";
+            period = KLineGeneratorJob.Period_1day;
             start = DateUtil.getTodayBeginTime();
         } else if("1W".equals(resolution) || resolution.endsWith("w")){//按周
-            period = "1week";
+            period = KLineGeneratorJob.Period_1week;
             start = DateUtil.getBeginDayOfWeek();
         } else if("1M".equals(resolution) || resolution.endsWith("m")){//按月
-            period = "1month";
+            period = KLineGeneratorJob.Period_1month;
             start = DateUtil.getFirstDateOfMonth();
         } else {
             Integer val = Integer.parseInt(resolution);
@@ -202,11 +203,29 @@ public class MarketController {
         
         List<KLine> list = marketService.findAllKLineByType(symbol,period);
         
+        if(KLineGeneratorJob.Period_1hour.equals(period)) {
+        	return list;
+        }
+        
         String key = start+symbol+period;
         // 加上当前的数据
         ValueOperations valueOperations = redisTemplate.opsForValue();
         KLine kLine = (KLine) valueOperations.get(key);
        
+        if(KLineGeneratorJob.Period_1week.equals(period) || KLineGeneratorJob.Period_1month.equals(period)){//按周、月
+        	// 如果是当前周月，需要加上当天的数据
+        	 long startToday = DateUtil.getTodayBeginTime();
+        	 String keyToday = startToday+symbol+KLineGeneratorJob.Period_1day;
+        	 KLine keyTodayKLine = (KLine) valueOperations.get(keyToday);
+        	 kLine.setClosePrice(keyTodayKLine.getClosePrice());
+        	 if (keyTodayKLine.getHighestPrice().compareTo(kLine.getHighestPrice())==1) {
+        		 kLine.setHighestPrice(keyTodayKLine.getHighestPrice());
+        	 }
+        	 if (keyTodayKLine.getLowestPrice().compareTo(kLine.getLowestPrice())==-1) {
+        		 kLine.setLowestPrice(keyTodayKLine.getLowestPrice());
+        	 }
+        } 
+        
         if (kLine!=null) {
         	list.add(kLine);
         }

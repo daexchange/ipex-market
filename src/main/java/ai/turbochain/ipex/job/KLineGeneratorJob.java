@@ -27,9 +27,9 @@ public class KLineGeneratorJob {
     @Autowired
     private CoinProcessorFactory processorFactory;
     public static final String Period_1hour =  "1hour";
-    public static final String Period_1month = "1month";
-    public static final String Period_1week = "1week";
     public static final String Period_1day = "1day";
+    public static final String Period_1week = "1week";
+    public static final String Period_1month = "1month";
     @Autowired
     private MarketService marketService;
     @Autowired
@@ -73,9 +73,9 @@ public class KLineGeneratorJob {
     }
 
     /**
-     * 每小时运行
+     * 每小时运行 时K线
      */
-    @Scheduled(cron = "0 0 * * * *")
+    @Scheduled(cron = "0 1 * * * *")
     public void handleHourKLine(){
         processorFactory.getProcessorMap().forEach((symbol,processor)-> {
             Calendar calendar = Calendar.getInstance();
@@ -92,7 +92,7 @@ public class KLineGeneratorJob {
     
    
     /**
-         * 每日0点5分处理器，处理日K线
+         * 每日0点5分处理器，处理昨天日K线
      */
     @Scheduled(cron = "0 5 0 * * *")
     public void handleDayKLine2() {
@@ -178,7 +178,7 @@ public class KLineGeneratorJob {
             for (ExchangeTrade exchangeTrade : exchangeTrades) {
             	processor.processTrade(kLine, exchangeTrade);
             }
-            String key = start+symbol+"1day";
+            String key = start+symbol+Period_1day;
             ValueOperations valueOperations = redisTemplate.opsForValue();
             valueOperations.set(key, kLine, 1, TimeUnit.DAYS);
         });
@@ -204,7 +204,7 @@ public class KLineGeneratorJob {
              for (ExchangeTrade exchangeTrade : exchangeTrades) {
              	processor.processTrade(kLine, exchangeTrade);
              }
-             String key = start+symbol+"1week";
+             String key = start+symbol+Period_1week;
              ValueOperations valueOperations = redisTemplate.opsForValue();
              valueOperations.set(key, kLine, 7, TimeUnit.DAYS);
     	 });
@@ -232,7 +232,7 @@ public class KLineGeneratorJob {
              for (KLine newKline : list) {
              	processor.processTrade(kLine, newKline);
              }
-             String key = from+symbol+"1month";
+             String key = from+symbol+Period_1month;
              ValueOperations valueOperations = redisTemplate.opsForValue();
              valueOperations.set(key, kLine, 31, TimeUnit.DAYS);
     	 });

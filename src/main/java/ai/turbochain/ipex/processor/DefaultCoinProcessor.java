@@ -342,7 +342,9 @@ public class DefaultCoinProcessor implements CoinProcessor {
         for (ExchangeTrade exchangeTrade : exchangeTrades) {
             processTrade(kLine, exchangeTrade);
         }
-        service.saveKLine(symbol, kLine);
+        if (BigDecimal.ZERO.compareTo(kLine.getHighestPrice())==-1) {
+        	service.saveKLine(symbol, kLine);
+        }
     }
 
     @Override

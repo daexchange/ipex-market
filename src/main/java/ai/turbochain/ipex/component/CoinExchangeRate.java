@@ -92,6 +92,9 @@ public class CoinExchangeRate {
         }else if ("ETH".equalsIgnoreCase(symbol)) {//不知道利率写多少暂时写
             BigDecimal bigDecimal = BigDecimal.ONE.divide(usdCnyRate, 4,BigDecimal.ROUND_DOWN).setScale(4, BigDecimal.ROUND_DOWN);
             return bigDecimal;
+        }else if ("EOS".equalsIgnoreCase(symbol)) {//不知道利率写多少暂时写
+            BigDecimal bigDecimal = BigDecimal.ONE.divide(usdCnyRate, 4,BigDecimal.ROUND_DOWN).setScale(4, BigDecimal.ROUND_DOWN);
+            return bigDecimal;
         }
         
         String usdtSymbol = symbol.toUpperCase() + "/USDT";

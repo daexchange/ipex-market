@@ -75,6 +75,7 @@ public class DigitalCurrencyMarketJob {
 		coinKeys.put("BTC", "7496");
 		coinKeys.put("USDT", "");
 		coinKeys.put("PWR", "");// 暂时定义PWR价格为2.000000人民币
+		coinKeys.put("ETE", "");// 暂时定义PWR价格为2.000000人民币
 	}
 
 	/**
@@ -97,20 +98,24 @@ public class DigitalCurrencyMarketJob {
 						String last = jsonArray.getJSONObject(0).optString("last");
 						Double coinMarketPrice = DigitalCurrencyMarketJob.getRate().multiply(new BigDecimal(last))
 								.setScale(6, BigDecimal.ROUND_HALF_UP).doubleValue();
-						valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey(),coinMarketPrice);		
-						System.out.println(coinKey+"====="+valueOperations.get(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey()));
+						valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey(),
+								coinMarketPrice);
+						System.out.println(coinKey + "====="
+								+ valueOperations.get(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey()));
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-				} else if(coinKey.getKey().equals("PWR")==true){
+				} else if (coinKey.getKey().equals("PWR") == true || coinKey.getKey().equals("ETE") == true) {
 					valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey(), 2.000000);
-					System.out.println(coinKey+"====="+valueOperations.get(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey()));
-				} else if(coinKey.getKey().equals("USDT")==true) {
-					Double coinMarketPrice = DigitalCurrencyMarketJob.getRate()
-							.setScale(6, BigDecimal.ROUND_HALF_UP).doubleValue();
-					valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey(),coinMarketPrice);		
-					System.out.println(coinKey+"====="+valueOperations.get(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey()));
-					
+					System.out.println(coinKey + "====="
+							+ valueOperations.get(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey()));
+				} else if (coinKey.getKey().equals("USDT") == true) {
+					Double coinMarketPrice = DigitalCurrencyMarketJob.getRate().setScale(6, BigDecimal.ROUND_HALF_UP)
+							.doubleValue();
+					valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey(), coinMarketPrice);
+					System.out.println(coinKey + "====="
+							+ valueOperations.get(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey()));
+
 				}
 			}
 		} catch (Exception e) {

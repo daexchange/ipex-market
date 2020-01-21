@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +84,7 @@ public class DigitalCurrencyMarketJob {
 	/**
 	 * 定时获取数字货币行情价格(人民币)
 	 */
-	@Scheduled(fixedRate = 60000)
+	@Scheduled(fixedRate = 120000)
 	public void orgaDigitalCurrencyMarket() {
 		try {
 			ValueOperations valueOperations = redisTemplate.opsForValue();
@@ -100,26 +103,48 @@ public class DigitalCurrencyMarketJob {
 								.setScale(6, BigDecimal.ROUND_HALF_UP).doubleValue();
 						valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey(),
 								coinMarketPrice);
-						System.out.println(coinKey + "====="
-								+ valueOperations.get(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey()));
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-				} else if (coinKey.getKey().equals("PWR") == true || coinKey.getKey().equals("ETE") == true) {
+				} else if (coinKey.getKey().equals("PWR") == true) {
 					valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey(), 2.000000);
-					System.out.println(coinKey + "====="
-							+ valueOperations.get(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey()));
 				} else if (coinKey.getKey().equals("USDT") == true) {
 					Double coinMarketPrice = DigitalCurrencyMarketJob.getRate().setScale(6, BigDecimal.ROUND_HALF_UP)
 							.doubleValue();
 					valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey(), coinMarketPrice);
+				}else if(coinKey.getKey().equals("ETE") == true) {
+					String result = HttpUtil.sendGet("https://senbit.com/api/x/v1/common/timestamp");
+					String timestamp = new JSONObject(result).get("ms").toString();
+					String data = "_=" + timestamp
+							+ "&access=1ieffJyheRLCsYvgN6AEiU&method=GET&path=%2Fapi%2Fx%2Fv1%2Fmarket%2Ftickers&symbol=ETE%2FUSDT";
+					String sign = DigitalCurrencyMarketJob.HMACSHA256(data, "0j7AOlxlMRUIi2rMuW81Rr");
+					String url = "https://senbit.com/api/x/v1/market/tickers?symbol=ETE%2FUSDT&_=" + timestamp
+							+ "&access=1ieffJyheRLCsYvgN6AEiU&sign=" + sign;
+					result = HttpUtil.sendGet(url);
+					JSONArray jsonArray = new JSONArray(result);
+					String last = jsonArray.getJSONObject(0).optString("last");
+					Double coinMarketPrice = DigitalCurrencyMarketJob.getRate().multiply(new BigDecimal(last))
+							.setScale(6, BigDecimal.ROUND_HALF_UP).doubleValue();
+					valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey(),
+							coinMarketPrice);
 					System.out.println(coinKey + "====="
 							+ valueOperations.get(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey()));
-
 				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static String HMACSHA256(String data, String key) throws Exception {
+		Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
+		SecretKeySpec secret_key = new SecretKeySpec(key.getBytes("UTF-8"), "HmacSHA256");
+		sha256_HMAC.init(secret_key);
+		byte[] array = sha256_HMAC.doFinal(data.getBytes("UTF-8"));
+		StringBuilder sb = new StringBuilder();
+		for (byte item : array) {
+			sb.append(Integer.toHexString((item & 0xFF) | 0x100).substring(1, 3));
+		}
+		return sb.toString().toLowerCase();
 	}
 }

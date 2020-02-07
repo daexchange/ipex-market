@@ -21,7 +21,7 @@ import ai.turbochain.ipex.util.HttpUtil;
 
 /**
  * 数字货币行情
- * 
+ *
  * @author zmc
  *
  */
@@ -33,7 +33,7 @@ public class DigitalCurrencyMarketJob {
 
 	/**
 	 * 获取汇率
-	 * 
+	 *
 	 * @return
 	 * @throws Exception
 	 */
@@ -56,7 +56,7 @@ public class DigitalCurrencyMarketJob {
 
 	/**
 	 * 获取类别版本
-	 * 
+	 *
 	 * @return
 	 * @throws Exception
 	 */
@@ -76,7 +76,7 @@ public class DigitalCurrencyMarketJob {
 	static {
 		coinKeys.put("ETH", "7843");
 		coinKeys.put("BTC", "7496");
-		coinKeys.put("USDT", "");
+		coinKeys.put("USDT", "8660");
 		coinKeys.put("PWR", "");// 暂时定义PWR价格为2.000000人民币
 		coinKeys.put("ETE", "");// 暂时定义PWR价格为2.000000人民币
 	}
@@ -108,11 +108,11 @@ public class DigitalCurrencyMarketJob {
 					}
 				} else if (coinKey.getKey().equals("PWR") == true) {
 					valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey(), 2.000000);
-				} else if (coinKey.getKey().equals("USDT") == true) {
+				} /*else if (coinKey.getKey().equals("USDT") == true) {
 					Double coinMarketPrice = DigitalCurrencyMarketJob.getRate().setScale(6, BigDecimal.ROUND_HALF_UP)
 							.doubleValue();
 					valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey(), coinMarketPrice);
-				}else if(coinKey.getKey().equals("ETE") == true) {
+				}*/else if(coinKey.getKey().equals("ETE") == true) {
 					String result = HttpUtil.sendGet("https://senbit.com/api/x/v1/common/timestamp");
 					String timestamp = new JSONObject(result).get("ms").toString();
 					String data = "_=" + timestamp
@@ -135,7 +135,7 @@ public class DigitalCurrencyMarketJob {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static String HMACSHA256(String data, String key) throws Exception {
 		Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
 		SecretKeySpec secret_key = new SecretKeySpec(key.getBytes("UTF-8"), "HmacSHA256");

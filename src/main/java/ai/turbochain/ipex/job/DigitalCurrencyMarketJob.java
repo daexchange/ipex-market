@@ -1,13 +1,7 @@
 package ai.turbochain.ipex.job;
 
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-
+import ai.turbochain.ipex.constant.SysConstant;
+import ai.turbochain.ipex.util.HttpUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +10,12 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import ai.turbochain.ipex.constant.SysConstant;
-import ai.turbochain.ipex.util.HttpUtil;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * 数字货币行情
@@ -77,6 +75,7 @@ public class DigitalCurrencyMarketJob {
 		coinKeys.put("ETH", "7843");
 		coinKeys.put("BTC", "7496");
 		coinKeys.put("USDT", "8660");
+		coinKeys.put("EOS", "7505");
 		coinKeys.put("PWR", "");// 暂时定义PWR价格为2.000000人民币
 		coinKeys.put("ETE", "");// 暂时定义PWR价格为2.000000人民币
 	}

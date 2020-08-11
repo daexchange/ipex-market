@@ -2,6 +2,8 @@ package ai.turbochain.ipex.job;
 
 import ai.turbochain.ipex.constant.SysConstant;
 import ai.turbochain.ipex.util.HttpUtil;
+import sun.util.logging.resources.logging;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -107,13 +109,15 @@ public class DigitalCurrencyMarketJob {
 					}
 				} else if (coinKey.getKey().equals("PWR") == true) {
 					valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey(), 2.000000);
+				} else if (coinKey.getKey().equals("ETE") == true) {
+					valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX + coinKey.getKey(), 1.530000);
 				} /*
 					 * else if (coinKey.getKey().equals("USDT") == true) { Double coinMarketPrice =
 					 * DigitalCurrencyMarketJob.getRate().setScale(6, BigDecimal.ROUND_HALF_UP)
 					 * .doubleValue();
 					 * valueOperations.set(SysConstant.DIGITAL_CURRENCY_MARKET_PREFIX +
 					 * coinKey.getKey(), coinMarketPrice); }
-					 */else if (coinKey.getKey().equals("ETE") == true) {
+					 *//*else if (coinKey.getKey().equals("ETE") == true) {
 					try {
 						String result = HttpUtil.sendGet("https://senbit.com/api/x/v1/common/timestamp");
 						String timestamp = new JSONObject(result).get("ms").toString();
@@ -132,11 +136,12 @@ public class DigitalCurrencyMarketJob {
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
-				}
+				}*/
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		System.out.println("汇率查询定时器结束");
 	}
 
 	public static String HMACSHA256(String data, String key) throws Exception {
